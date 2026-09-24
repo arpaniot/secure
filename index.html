@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StudySync — Secure Peer Chat</title>
+  <title>StudySync — WhatsApp Style Peer Chat</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -56,9 +56,10 @@
       flex-direction: column;
       overflow: hidden;
       box-shadow: 0 20px 40px rgba(0, 0, 0, 0.6);
+      position: relative;
     }
 
-    /* ENTRY / LOGIN VIEW */
+    /* LOGIN VIEW */
     .entry-container {
       padding: 32px 24px;
       display: flex;
@@ -171,7 +172,7 @@
     .status-msg.error { color: #f15c6d; }
     .status-msg.success { color: var(--wa-green); }
 
-    /* WHATSAPP CHAT VIEW */
+    /* CHAT VIEW */
     .room-view {
       display: none;
       flex-direction: column;
@@ -180,7 +181,7 @@
 
     .chat-header {
       background: var(--wa-header);
-      padding: 10px 16px;
+      padding: 10px 14px;
       display: flex;
       align-items: center;
       justify-content: space-between;
@@ -190,38 +191,68 @@
     .header-user {
       display: flex;
       align-items: center;
-      gap: 12px;
+      gap: 10px;
     }
 
     .avatar {
-      width: 40px;
-      height: 40px;
+      width: 38px;
+      height: 38px;
       background: #6b7c85;
       border-radius: 50%;
       display: flex;
       align-items: center;
       justify-content: center;
-      font-size: 1.2rem;
+      font-size: 1.1rem;
     }
 
     .user-info h2 {
-      font-size: 0.98rem;
+      font-size: 0.95rem;
       font-weight: 600;
     }
 
     .user-info p {
-      font-size: 0.75rem;
+      font-size: 0.72rem;
       color: var(--wa-green);
       display: flex;
       align-items: center;
       gap: 4px;
     }
 
+    .header-tools {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .battery-pill {
+      background: rgba(0, 0, 0, 0.3);
+      border: 1px solid var(--wa-border);
+      padding: 4px 8px;
+      border-radius: 12px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      color: #aebac1;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .btn-vault {
+      background: var(--wa-input-bg);
+      border: 1px solid var(--wa-border);
+      color: #f1c40f;
+      padding: 5px 8px;
+      border-radius: 8px;
+      font-size: 0.75rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
     .pin-badge {
       background: var(--wa-input-bg);
       border-radius: 8px;
-      padding: 5px 10px;
-      font-size: 0.78rem;
+      padding: 5px 8px;
+      font-size: 0.75rem;
       font-weight: 600;
       color: var(--wa-muted);
       cursor: pointer;
@@ -232,19 +263,18 @@
       border: none;
       color: #f15c6d;
       font-weight: 600;
-      font-size: 0.82rem;
+      font-size: 0.8rem;
       cursor: pointer;
-      margin-left: 8px;
     }
 
-    /* CHAT WALLPAPER & MESSAGES */
+    /* MESSAGES AREA */
     .chat-body {
       flex: 1;
       padding: 16px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 8px;
+      gap: 10px;
       background-color: #0b141a;
       background-image: radial-gradient(rgba(255, 255, 255, 0.03) 1px, transparent 0);
       background-size: 16px 16px;
@@ -259,14 +289,15 @@
     }
 
     .msg-bubble {
-      max-width: 80%;
+      max-width: 82%;
       padding: 8px 12px 6px 12px;
       border-radius: 10px;
       font-size: 0.92rem;
       line-height: 1.4;
       position: relative;
       word-break: break-word;
-      display: inline-block;
+      display: flex;
+      flex-direction: column;
     }
 
     .msg-bubble.outgoing {
@@ -283,16 +314,35 @@
       color: #e9edef;
     }
 
-    .msg-meta {
+    .msg-footer {
       display: flex;
       align-items: center;
       justify-content: flex-end;
-      gap: 4px;
+      gap: 6px;
       font-size: 0.68rem;
       color: rgba(241, 241, 241, 0.6);
-      margin-top: 2px;
-      float: right;
-      margin-left: 12px;
+      margin-top: 4px;
+    }
+
+    .delete-btn {
+      background: transparent;
+      border: none;
+      color: #f15c6d;
+      font-size: 0.72rem;
+      cursor: pointer;
+      opacity: 0.7;
+      transition: opacity 0.2s ease;
+    }
+
+    .delete-btn:hover { opacity: 1; }
+
+    .deleted-notice {
+      font-style: italic;
+      color: var(--wa-muted);
+      font-size: 0.85rem;
+      display: flex;
+      align-items: center;
+      gap: 4px;
     }
 
     .ticks {
@@ -333,6 +383,65 @@
       cursor: pointer;
       font-size: 1.1rem;
     }
+
+    /* DELETED VAULT MODAL */
+    .modal-overlay {
+      display: none;
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(8px);
+      z-index: 100;
+      padding: 20px;
+      flex-direction: column;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+      border-bottom: 1px solid var(--wa-border);
+      padding-bottom: 10px;
+    }
+
+    .modal-header h3 {
+      color: #f1c40f;
+      font-size: 1.1rem;
+    }
+
+    .close-modal {
+      background: transparent;
+      border: none;
+      color: var(--wa-muted);
+      font-size: 1.2rem;
+      cursor: pointer;
+    }
+
+    .vault-list {
+      flex: 1;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .vault-item {
+      background: var(--wa-header);
+      padding: 12px;
+      border-radius: 8px;
+      border: 1px solid var(--wa-border);
+      font-size: 0.88rem;
+    }
+
+    .vault-meta {
+      font-size: 0.72rem;
+      color: var(--wa-muted);
+      margin-bottom: 4px;
+    }
   </style>
 </head>
 <body>
@@ -367,15 +476,22 @@
         <div class="header-user">
           <div class="avatar">👤</div>
           <div class="user-info">
-            <h2 id="peerName">Study Peer</h2>
+            <h2>Study Peer</h2>
             <p>● online</p>
           </div>
         </div>
 
-        <div style="display: flex; align-items: center;">
-          <div class="pin-badge" onclick="copyPin()" title="Copy PIN">
-            PIN: <strong id="activePinDisplay" style="color:var(--wa-text);">----</strong> 📋
+        <div class="header-tools">
+          <div class="battery-pill" id="batteryDisplay" title="Live Battery Status">
+            🔋 <span id="batteryPct">--%</span>
           </div>
+
+          <button class="btn-vault" onclick="openVault()" title="Access Vault">🔑 Vault</button>
+
+          <div class="pin-badge" onclick="copyPin()" title="Copy PIN">
+            <strong id="activePinDisplay">----</strong> 📋
+          </div>
+
           <button class="btn-end" onclick="leaveRoom()">Exit</button>
         </div>
       </div>
@@ -386,6 +502,18 @@
         <input type="text" id="msgInput" class="chat-input" placeholder="Type a message" onkeypress="if(event.key==='Enter') sendMessage()" />
         <button class="btn-send-icon" onclick="sendMessage()">➤</button>
       </div>
+
+      <!-- SECRET VAULT MODAL -->
+      <div class="modal-overlay" id="vaultModal">
+        <div class="modal-header">
+          <h3>🕵️ Secret Deleted Messages Vault</h3>
+          <button class="close-modal" onclick="closeVault()">✕</button>
+        </div>
+        <div class="vault-list" id="vaultList">
+          <p style="color: var(--wa-muted); text-align: center; margin-top: 20px;">No deleted messages recorded in this session.</p>
+        </div>
+      </div>
+
     </div>
 
   </div>
@@ -395,7 +523,9 @@
     let conn = null;
     let currentMode = 'create';
     let currentPin = '';
+    let deletedVault = [];
 
+    // Auto-advance PIN inputs
     const inputs = document.querySelectorAll('.pin-input');
     inputs.forEach((input, index) => {
       input.addEventListener('input', (e) => {
@@ -405,6 +535,25 @@
         if (e.key === 'Backspace' && !e.target.value && index > 0) inputs[index - 1].focus();
       });
     });
+
+    // Battery Monitor API
+    function initBattery() {
+      if ('getBattery' in navigator) {
+        navigator.getBattery().then(battery => {
+          updateBatteryUI(battery);
+          battery.addEventListener('levelchange', () => updateBatteryUI(battery));
+          battery.addEventListener('chargingchange', () => updateBatteryUI(battery));
+        });
+      } else {
+        document.getElementById('batteryPct').innerText = 'N/A';
+      }
+    }
+
+    function updateBatteryUI(battery) {
+      const level = Math.round(battery.level * 100);
+      const charging = battery.charging ? '⚡' : '';
+      document.getElementById('batteryPct').innerText = `${level}% ${charging}`;
+    }
 
     function switchTab(mode) {
       currentMode = mode;
@@ -482,8 +631,14 @@
       document.getElementById('roomView').style.display = 'flex';
       document.getElementById('activePinDisplay').innerText = currentPin;
 
+      initBattery();
+
       conn.on('data', (data) => {
-        appendMessage(data, false);
+        if (data.type === 'CHAT') {
+          appendMessage(data.id, data.text, false, data.time);
+        } else if (data.type === 'DELETE') {
+          handleRemoteDelete(data.id);
+        }
       });
 
       conn.on('close', () => {
@@ -497,28 +652,108 @@
       const text = input.value.trim();
       if (!text || !conn) return;
 
-      conn.send(text);
-      appendMessage(text, true);
+      const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const msgData = { type: 'CHAT', id: msgId, text: text, time: timeStr };
+      conn.send(msgData);
+
+      appendMessage(msgId, text, true, timeStr);
       input.value = '';
     }
 
-    function appendMessage(text, isMine) {
+    function appendMessage(id, text, isMine, timeStr) {
       const chatBox = document.getElementById('chatBox');
       const bubble = document.createElement('div');
       bubble.className = 'msg-bubble ' + (isMine ? 'outgoing' : 'incoming');
+      bubble.id = id;
+      bubble.dataset.originalText = text;
+      bubble.dataset.sender = isMine ? 'You' : 'Peer';
+      bubble.dataset.time = timeStr;
 
-      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
       const ticks = isMine ? '<span class="ticks">✓✓</span>' : '';
+      const deleteOpt = isMine ? `<button class="delete-btn" onclick="deleteForEveryone('${id}')">🗑️ Delete</button>` : '';
 
-      bubble.innerHTML = `${text} <div class="msg-meta">${timeStr} ${ticks}</div>`;
+      bubble.innerHTML = `
+        <span class="msg-text">${text}</span>
+        <div class="msg-footer">
+          ${deleteOpt}
+          <span>${timeStr}</span>
+          ${ticks}
+        </div>
+      `;
 
       chatBox.appendChild(bubble);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
+    function deleteForEveryone(msgId) {
+      const bubble = document.getElementById(msgId);
+      if (!bubble) return;
+
+      // Broadcast delete command to peer
+      if (conn) {
+        conn.send({ type: 'DELETE', id: msgId });
+      }
+
+      // Save to secret vault locally
+      saveToVault(bubble.dataset.sender, bubble.dataset.originalText, bubble.dataset.time);
+
+      // Update local message UI
+      markAsDeleted(bubble);
+    }
+
+    function handleRemoteDelete(msgId) {
+      const bubble = document.getElementById(msgId);
+      if (bubble) {
+        // Save peer's deleted message into your secret vault
+        saveToVault(bubble.dataset.sender, bubble.dataset.originalText, bubble.dataset.time);
+        markAsDeleted(bubble);
+      }
+    }
+
+    function markAsDeleted(bubble) {
+      bubble.innerHTML = `
+        <div class="deleted-notice">
+          🚫 <span>This message was deleted</span>
+        </div>
+      `;
+    }
+
+    function saveToVault(sender, text, time) {
+      deletedVault.push({ sender, text, time, deletedAt: new Date().toLocaleTimeString() });
+    }
+
+    function openVault() {
+      const code = prompt('Enter 4-digit Vault Passcode:');
+      if (code === '6767') {
+        const vaultModal = document.getElementById('vaultModal');
+        const vaultList = document.getElementById('vaultList');
+
+        if (deletedVault.length === 0) {
+          vaultList.innerHTML = '<p style="color: var(--wa-muted); text-align: center; margin-top: 20px;">No deleted messages recorded in this session.</p>';
+        } else {
+          vaultList.innerHTML = deletedVault.map(item => `
+            <div class="vault-item">
+              <div class="vault-meta">Sender: <strong>${item.sender}</strong> • Sent at ${item.time} (Deleted at ${item.deletedAt})</div>
+              <div style="color: #e9edef; font-weight: 500;">${item.text}</div>
+            </div>
+          `).join('');
+        }
+
+        vaultModal.style.display = 'flex';
+      } else if (code !== null) {
+        alert('Incorrect Passcode!');
+      }
+    }
+
+    function closeVault() {
+      document.getElementById('vaultModal').style.display = 'none';
+    }
+
     function copyPin() {
       navigator.clipboard.writeText(currentPin);
-      alert('Room PIN copied!');
+      alert('Room PIN copied to clipboard!');
     }
 
     function leaveRoom() {
@@ -526,5 +761,4 @@
     }
   </script>
 </body>
-          </html>
-        
+</html>
