@@ -3,15 +3,15 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StudySync — WhatsApp Style Peer Chat</title>
+  <title>StudySync — WhatsApp Peer Chat</title>
 
   <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Segoe+UI:wght@400;500;600;700&display=swap" rel="stylesheet">
   
-  <!-- PeerJS Library -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  <!-- PeerJS Library CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/peerjs@1.5.4/dist/peerjs.min.js"></script>
 
   <style>
     :root {
@@ -59,7 +59,7 @@
       position: relative;
     }
 
-    /* LOGIN VIEW */
+    /* ENTRY SCREEN */
     .entry-container {
       padding: 32px 24px;
       display: flex;
@@ -232,9 +232,6 @@
       font-size: 0.75rem;
       font-weight: 600;
       color: #aebac1;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
 
     .btn-vault {
@@ -281,13 +278,6 @@
       scroll-behavior: smooth;
     }
 
-    .chat-body::-webkit-scrollbar {
-      width: 5px;
-    }
-    .chat-body::-webkit-scrollbar-thumb {
-      background: var(--wa-header);
-    }
-
     .msg-bubble {
       max-width: 82%;
       padding: 8px 12px 6px 12px;
@@ -331,7 +321,6 @@
       font-size: 0.72rem;
       cursor: pointer;
       opacity: 0.7;
-      transition: opacity 0.2s ease;
     }
 
     .delete-btn:hover { opacity: 1; }
@@ -340,15 +329,9 @@
       font-style: italic;
       color: var(--wa-muted);
       font-size: 0.85rem;
-      display: flex;
-      align-items: center;
-      gap: 4px;
     }
 
-    .ticks {
-      color: #53bdeb;
-      font-weight: bold;
-    }
+    .ticks { color: #53bdeb; font-weight: bold; }
 
     /* JUMPING CAT TYPING INDICATOR */
     .typing-indicator-box {
@@ -361,7 +344,6 @@
       align-self: flex-start;
       margin-bottom: 4px;
       border: 1px solid var(--wa-border);
-      backdrop-filter: blur(4px);
     }
 
     .jumping-cat {
@@ -371,19 +353,11 @@
     }
 
     @keyframes catJump {
-      0% {
-        transform: translateY(0) scale(1, 0.9);
-      }
-      100% {
-        transform: translateY(-8px) scale(0.9, 1.1);
-      }
+      0% { transform: translateY(0); }
+      100% { transform: translateY(-8px); }
     }
 
-    .typing-text {
-      font-size: 0.78rem;
-      color: var(--wa-green);
-      font-weight: 600;
-    }
+    .typing-text { font-size: 0.78rem; color: var(--wa-green); font-weight: 600; }
 
     /* INPUT BAR */
     .chat-footer {
@@ -419,7 +393,7 @@
       font-size: 1.1rem;
     }
 
-    /* DELETED VAULT MODAL */
+    /* VAULT MODAL */
     .modal-overlay {
       display: none;
       position: absolute;
@@ -443,40 +417,11 @@
       padding-bottom: 10px;
     }
 
-    .modal-header h3 {
-      color: #f1c40f;
-      font-size: 1.1rem;
-    }
-
-    .close-modal {
-      background: transparent;
-      border: none;
-      color: var(--wa-muted);
-      font-size: 1.2rem;
-      cursor: pointer;
-    }
-
-    .vault-list {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .vault-item {
-      background: var(--wa-header);
-      padding: 12px;
-      border-radius: 8px;
-      border: 1px solid var(--wa-border);
-      font-size: 0.88rem;
-    }
-
-    .vault-meta {
-      font-size: 0.72rem;
-      color: var(--wa-muted);
-      margin-bottom: 4px;
-    }
+    .modal-header h3 { color: #f1c40f; font-size: 1.1rem; }
+    .close-modal { background: transparent; border: none; color: var(--wa-muted); font-size: 1.2rem; cursor: pointer; }
+    .vault-list { flex: 1; overflow-y: auto; display: flex; flex-direction: column; gap: 10px; }
+    .vault-item { background: var(--wa-header); padding: 12px; border-radius: 8px; border: 1px solid var(--wa-border); font-size: 0.88rem; }
+    .vault-meta { font-size: 0.72rem; color: var(--wa-muted); margin-bottom: 4px; }
   </style>
 </head>
 <body>
@@ -532,7 +477,6 @@
       </div>
 
       <div class="chat-body" id="chatBox">
-        <!-- Floating Jumping Cat Typing Container -->
         <div class="typing-indicator-box" id="typingContainer">
           <span class="jumping-cat">🐱</span>
           <span class="typing-text">Peer is typing...</span>
@@ -568,7 +512,7 @@
     let typingTimer = null;
     let isTypingActive = false;
 
-    // Auto-advance PIN inputs
+    // PIN Input Handling
     const inputs = document.querySelectorAll('.pin-input');
     inputs.forEach((input, index) => {
       input.addEventListener('input', (e) => {
@@ -579,7 +523,7 @@
       });
     });
 
-    // Battery Monitor API
+    // Battery API
     function initBattery() {
       if ('getBattery' in navigator) {
         navigator.getBattery().then(battery => {
@@ -588,7 +532,7 @@
           battery.addEventListener('chargingchange', () => updateBatteryUI(battery));
         });
       } else {
-        document.getElementById('batteryPct').innerText = 'N/A';
+        document.getElementById('batteryPct').innerText = '100%';
       }
     }
 
@@ -609,6 +553,16 @@
       document.getElementById('actionBtn').innerText = mode === 'create' ? 'Start Host Room' : 'Join Room';
     }
 
+    // Config with public Google STUN servers for reliable NAT traversal
+    const peerConfig = {
+      config: {
+        iceServers: [
+          { urls: 'stun:stun.l.google.com:19302' },
+          { urls: 'stun:stun1.l.google.com:19302' }
+        ]
+      }
+    };
+
     function handleAction() {
       let pin = '';
       inputs.forEach(i => pin += i.value);
@@ -621,60 +575,52 @@
       }
 
       currentPin = pin;
-      const peerId = 'studysync_pro_' + pin;
+      const peerId = 'studysync_v2_' + pin;
 
       if (currentMode === 'create') {
         status.className = 'status-msg success';
-        status.innerText = 'Waiting for peer to join...';
+        status.innerText = 'Initializing room...';
 
-        peer = new Peer(peerId);
+        peer = new Peer(peerId, peerConfig);
 
         peer.on('open', () => {
-          status.innerText = 'Room Live! Share PIN ' + pin + ' with peer.';
+          status.innerText = 'Room Live! Waiting for peer to enter PIN: ' + pin;
         });
 
         peer.on('connection', (connection) => {
           conn = connection;
-          setupChat();
+          bindConnectionEvents();
         });
 
         peer.on('error', (err) => {
           status.className = 'status-msg error';
-          status.innerText = err.type === 'unavailable-id' ? 'PIN in use. Choose another.' : 'Network error.';
+          status.innerText = err.type === 'unavailable-id' ? 'PIN already in use. Try another PIN.' : 'Network error occurred.';
         });
 
       } else {
         status.className = 'status-msg success';
-        status.innerText = 'Connecting...';
+        status.innerText = 'Connecting to room...';
 
-        peer = new Peer();
+        peer = new Peer(peerConfig);
 
         peer.on('open', () => {
           conn = peer.connect(peerId);
-
-          conn.on('open', () => {
-            setupChat();
-          });
-
-          conn.on('error', () => {
-            status.className = 'status-msg error';
-            status.innerText = 'Connection failed. Verify PIN.';
-          });
+          bindConnectionEvents();
         });
 
         peer.on('error', () => {
           status.className = 'status-msg error';
-          status.innerText = 'Room not found. Check host PIN.';
+          status.innerText = 'Room not found. Make sure host has created it.';
         });
       }
     }
 
-    function setupChat() {
-      document.getElementById('entryView').style.display = 'none';
-      document.getElementById('roomView').style.display = 'flex';
-      document.getElementById('activePinDisplay').innerText = currentPin;
+    function bindConnectionEvents() {
+      if (!conn) return;
 
-      initBattery();
+      conn.on('open', () => {
+        setupChatUI();
+      });
 
       conn.on('data', (data) => {
         if (data.type === 'CHAT') {
@@ -693,6 +639,13 @@
         alert('Peer left the room.');
         leaveRoom();
       });
+    }
+
+    function setupChatUI() {
+      document.getElementById('entryView').style.display = 'none';
+      document.getElementById('roomView').style.display = 'flex';
+      document.getElementById('activePinDisplay').innerText = currentPin;
+      initBattery();
     }
 
     function handleTypingEvent() {
@@ -727,7 +680,6 @@
       const text = input.value.trim();
       if (!text || !conn) return;
 
-      // Stop typing status instantly when message sent
       clearTimeout(typingTimer);
       isTypingActive = false;
       conn.send({ type: 'STOP_TYPING' });
@@ -763,10 +715,75 @@
         </div>
       `;
 
-      // Insert message before typing indicator container
       const typingContainer = document.getElementById('typingContainer');
       chatBox.insertBefore(bubble, typingContainer);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    funct
+    function deleteForEveryone(msgId) {
+      const bubble = document.getElementById(msgId);
+      if (!bubble) return;
+
+      if (conn) conn.send({ type: 'DELETE', id: msgId });
+      saveToVault(bubble.dataset.sender, bubble.dataset.originalText, bubble.dataset.time);
+      markAsDeleted(bubble);
+    }
+
+    function handleRemoteDelete(msgId) {
+      const bubble = document.getElementById(msgId);
+      if (bubble) {
+        saveToVault(bubble.dataset.sender, bubble.dataset.originalText, bubble.dataset.time);
+        markAsDeleted(bubble);
+      }
+    }
+
+    function markAsDeleted(bubble) {
+      bubble.innerHTML = `
+        <div class="deleted-notice">
+          🚫 <span>This message was deleted</span>
+        </div>
+      `;
+    }
+
+    function saveToVault(sender, text, time) {
+      deletedVault.push({ sender, text, time, deletedAt: new Date().toLocaleTimeString() });
+    }
+
+    function openVault() {
+      const code = prompt('Enter 4-digit Vault Passcode:');
+      if (code === '6767') {
+        const vaultModal = document.getElementById('vaultModal');
+        const vaultList = document.getElementById('vaultList');
+
+        if (deletedVault.length === 0) {
+          vaultList.innerHTML = '<p style="color: var(--wa-muted); text-align: center; margin-top: 20px;">No deleted messages recorded in this session.</p>';
+        } else {
+          vaultList.innerHTML = deletedVault.map(item => `
+            <div class="vault-item">
+              <div class="vault-meta">Sender: <strong>${item.sender}</strong> • Sent at ${item.time} (Deleted at ${item.deletedAt})</div>
+              <div style="color: #e9edef; font-weight: 500;">${item.text}</div>
+            </div>
+          `).join('');
+        }
+
+        vaultModal.style.display = 'flex';
+      } else if (code !== null) {
+        alert('Incorrect Passcode!');
+      }
+    }
+
+    function closeVault() {
+      document.getElementById('vaultModal').style.display = 'none';
+    }
+
+    function copyPin() {
+      navigator.clipboard.writeText(currentPin);
+      alert('Room PIN copied to clipboard!');
+    }
+
+    function leaveRoom() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
