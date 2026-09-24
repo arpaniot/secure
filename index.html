@@ -3,28 +3,37 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>StudySync - Zero-API Peer Chat</title>
+  <title>StudySync Pro — Private P2P Workspace</title>
+
+  <!-- Google Fonts -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-  <!-- PeerJS Library (No API Keys Required) -->
-  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
   
+  <!-- PeerJS Library (Zero API Keys Required) -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+
   <style>
     :root {
-      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
-      --card-bg: rgba(255, 255, 255, 0.05);
-      --card-border: rgba(255, 255, 255, 0.12);
+      --bg-gradient: radial-gradient(circle at top right, #1e1b4b, #0f172a 60%, #020617);
+      --card-bg: rgba(15, 23, 42, 0.75);
+      --card-border: rgba(255, 255, 255, 0.1);
       --primary: #6366f1;
+      --primary-hover: #4f46e5;
       --accent: #a855f7;
       --text-main: #f8fafc;
       --text-muted: #94a3b8;
       --error: #f43f5e;
       --success: #10b981;
-      --radius: 20px;
+      --radius: 24px;
     }
 
-    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Plus Jakarta Sans', sans-serif;
+    }
 
     body {
       min-height: 100vh;
@@ -33,168 +42,333 @@
       display: flex;
       justify-content: center;
       align-items: center;
-      padding: 20px;
+      padding: 16px;
+      overflow-x: hidden;
     }
 
     .app-card {
       width: 100%;
-      max-width: 480px;
+      max-width: 520px;
       background: var(--card-bg);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
+      backdrop-filter: blur(24px);
+      -webkit-backdrop-filter: blur(24px);
       border: 1px solid var(--card-border);
       border-radius: var(--radius);
-      padding: 32px 24px;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      padding: 28px 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+      transition: all 0.3s ease;
+    }
+
+    /* ENTRY SCREEN UI */
+    .brand-header {
       text-align: center;
+      margin-bottom: 24px;
     }
 
     .logo-badge {
       display: inline-flex;
       align-items: center;
-      gap: 8px;
-      background: rgba(99, 102, 241, 0.15);
+      gap: 6px;
+      background: rgba(99, 102, 241, 0.12);
       border: 1px solid rgba(99, 102, 241, 0.3);
       color: #818cf8;
-      padding: 6px 14px;
-      border-radius: 30px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      margin-bottom: 20px;
+      padding: 6px 16px;
+      border-radius: 100px;
+      font-size: 0.8rem;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      margin-bottom: 14px;
     }
 
-    h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
-    p.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+    h1 {
+      font-size: 2rem;
+      font-weight: 800;
+      letter-spacing: -0.5px;
+      background: linear-gradient(135deg, #fff 30%, #94a3b8 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    p.subtitle {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin-top: 4px;
+    }
 
     .tab-group {
       display: flex;
-      background: rgba(0, 0, 0, 0.25);
+      background: rgba(0, 0, 0, 0.3);
       padding: 4px;
-      border-radius: 12px;
-      margin-bottom: 20px;
+      border-radius: 14px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+      margin-bottom: 24px;
     }
 
     .tab-btn {
       flex: 1;
-      padding: 10px;
+      padding: 12px;
       border: none;
       background: transparent;
       color: var(--text-muted);
-      font-weight: 600;
-      border-radius: 8px;
+      font-weight: 700;
+      font-size: 0.9rem;
+      border-radius: 10px;
       cursor: pointer;
+      transition: all 0.2s ease;
     }
 
-    .tab-btn.active { background: var(--primary); color: #fff; }
+    .tab-btn.active {
+      background: var(--primary);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.35);
+    }
 
     .pin-container {
       display: flex;
       justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 20px;
+      gap: 12px;
+      margin-bottom: 24px;
     }
 
     .pin-input {
       width: 100%;
-      height: 50px;
+      height: 60px;
       text-align: center;
-      font-size: 1.4rem;
-      font-weight: 700;
-      background: rgba(0, 0, 0, 0.2);
+      font-size: 1.6rem;
+      font-weight: 800;
+      background: rgba(0, 0, 0, 0.3);
       border: 1.5px solid var(--card-border);
-      border-radius: 12px;
+      border-radius: 14px;
       color: var(--text-main);
       outline: none;
+      transition: all 0.2s ease;
     }
 
-    .pin-input:focus { border-color: var(--primary); }
+    .pin-input:focus {
+      border-color: var(--primary);
+      box-shadow: 0 0 0 4px rgba(99, 102, 241, 0.2);
+    }
 
     .btn-action {
       width: 100%;
-      padding: 14px;
+      padding: 16px;
       border: none;
-      border-radius: 12px;
+      border-radius: 14px;
       background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
       color: white;
-      font-weight: 700;
+      font-weight: 800;
       font-size: 1rem;
       cursor: pointer;
+      transition: transform 0.15s ease, box-shadow 0.2s ease;
+      box-shadow: 0 10px 20px -5px rgba(99, 102, 241, 0.4);
     }
 
-    .status-msg { font-size: 0.85rem; margin-top: 14px; min-height: 20px; }
+    .btn-action:active {
+      transform: scale(0.98);
+    }
+
+    .status-msg {
+      font-size: 0.85rem;
+      margin-top: 16px;
+      min-height: 20px;
+      text-align: center;
+      font-weight: 600;
+    }
+
     .status-msg.error { color: var(--error); }
     .status-msg.success { color: var(--success); }
 
-    .room-view { display: none; text-align: left; }
-    
-    .room-header {
+    /* DASHBOARD & CHAT UI */
+    .room-view { display: none; }
+
+    .top-bar {
       display: flex;
       justify-content: space-between;
       align-items: center;
-      background: rgba(16, 185, 129, 0.1);
-      border: 1px solid rgba(16, 185, 129, 0.3);
-      padding: 12px 16px;
-      border-radius: 12px;
-      color: var(--success);
-      font-size: 0.85rem;
-      font-weight: 600;
+      padding-bottom: 16px;
       margin-bottom: 16px;
+      border-bottom: 1px solid var(--card-border);
+    }
+
+    .status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.25);
+      color: var(--success);
+      padding: 6px 12px;
+      border-radius: 20px;
+      font-size: 0.8rem;
+      font-weight: 700;
+    }
+
+    .pulse-dot {
+      width: 8px;
+      height: 8px;
+      background: var(--success);
+      border-radius: 50%;
+      box-shadow: 0 0 8px var(--success);
+      animation: pulse 1.5s infinite;
+    }
+
+    @keyframes pulse {
+      0% { opacity: 0.4; }
+      50% { opacity: 1; }
+      100% { opacity: 0.4; }
+    }
+
+    .pin-badge {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: var(--text-main);
+      cursor: pointer;
+    }
+
+    .pin-badge:hover {
+      background: rgba(255, 255, 255, 0.1);
+    }
+
+    .metrics-bar {
+      display: flex;
+      justify-content: space-between;
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+      font-weight: 600;
+      padding: 0 4px;
     }
 
     .chat-box {
-      height: 300px;
-      background: rgba(0, 0, 0, 0.25);
+      height: 340px;
+      background: rgba(0, 0, 0, 0.3);
       border: 1px solid var(--card-border);
-      border-radius: 12px;
-      padding: 12px;
+      border-radius: 16px;
+      padding: 16px;
       overflow-y: auto;
       display: flex;
       flex-direction: column;
-      gap: 10px;
-      margin-bottom: 12px;
+      gap: 12px;
+      margin-bottom: 16px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-box::-webkit-scrollbar {
+      width: 6px;
+    }
+    .chat-box::-webkit-scrollbar-thumb {
+      background: rgba(255, 255, 255, 0.15);
+      border-radius: 10px;
     }
 
     .msg-wrapper {
       display: flex;
       flex-direction: column;
-      max-width: 80%;
+      max-width: 82%;
     }
 
     .msg-wrapper.mine { align-self: flex-end; align-items: flex-end; }
     .msg-wrapper.partner { align-self: flex-start; align-items: flex-start; }
 
-    .sender-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 3px; font-weight: 600; }
-
-    .msg {
-      padding: 10px 14px;
-      border-radius: 14px;
-      font-size: 0.9rem;
-      word-break: break-word;
-      line-height: 1.4;
+    .msg-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 0.7rem;
+      color: var(--text-muted);
+      margin-bottom: 4px;
+      font-weight: 600;
     }
 
-    .msg-wrapper.mine .msg { background: var(--primary); color: white; border-bottom-right-radius: 2px; }
-    .msg-wrapper.partner .msg { background: rgba(255, 255, 255, 0.1); color: white; border-bottom-left-radius: 2px; }
+    .msg {
+      padding: 12px 16px;
+      border-radius: 16px;
+      font-size: 0.92rem;
+      word-break: break-word;
+      line-height: 1.45;
+      position: relative;
+    }
 
-    .chat-input-group { display: flex; gap: 8px; }
+    .msg-wrapper.mine .msg {
+      background: linear-gradient(135deg, var(--primary) 0%, var(--primary-hover) 100%);
+      color: white;
+      border-bottom-right-radius: 4px;
+      box-shadow: 0 4px 12px rgba(99, 102, 241, 0.2);
+    }
+
+    .msg-wrapper.partner .msg {
+      background: rgba(255, 255, 255, 0.08);
+      color: white;
+      border-bottom-left-radius: 4px;
+      border: 1px solid rgba(255, 255, 255, 0.05);
+    }
+
+    .controls-bar {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+
+    .btn-secondary {
+      background: rgba(255, 255, 255, 0.05);
+      border: 1px solid var(--card-border);
+      color: var(--text-muted);
+      padding: 8px 12px;
+      border-radius: 10px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .btn-secondary:hover {
+      background: rgba(255, 255, 255, 0.1);
+      color: var(--text-main);
+    }
+
+    .chat-input-group { display: flex; gap: 10px; }
 
     .chat-input {
       flex: 1;
-      padding: 12px 14px;
-      background: rgba(0, 0, 0, 0.2);
-      border: 1px solid var(--card-border);
-      border-radius: 10px;
+      padding: 14px 16px;
+      background: rgba(0, 0, 0, 0.3);
+      border: 1.5px solid var(--card-border);
+      border-radius: 14px;
       color: white;
       outline: none;
       font-size: 0.95rem;
+      transition: border-color 0.2s ease;
     }
 
+    .chat-input:focus { border-color: var(--primary); }
+
     .btn-send {
-      padding: 0 20px;
-      background: var(--primary);
+      padding: 0 22px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
       border: none;
-      border-radius: 10px;
+      border-radius: 14px;
       color: white;
+      font-weight: 800;
+      cursor: pointer;
+      transition: transform 0.15s ease;
+    }
+
+    .btn-send:active { transform: scale(0.96); }
+
+    .btn-leave {
+      background: rgba(244, 63, 94, 0.1);
+      border: 1px solid rgba(244, 63, 94, 0.25);
+      color: var(--error);
+      padding: 6px 12px;
+      border-radius: 10px;
+      font-size: 0.8rem;
       font-weight: 700;
       cursor: pointer;
     }
@@ -204,14 +378,17 @@
 
   <div class="app-card">
     
+    <!-- ENTRY VIEW -->
     <div id="entryView">
-      <div class="logo-badge">⚡ Zero-Backend P2P Sync</div>
-      <h1>StudySync</h1>
-      <p class="subtitle">Enter a unique 4-digit PIN to establish a direct P2P connection.</p>
+      <div class="brand-header">
+        <div class="logo-badge">🛡️ Peer-to-Peer Encrypted</div>
+        <h1>StudySync Pro</h1>
+        <p class="subtitle">Direct, zero-log workspace for paired studying.</p>
+      </div>
 
       <div class="tab-group">
-        <button class="tab-btn active" id="tabCreate" onclick="switchTab('create')">Host Room</button>
-        <button class="tab-btn" id="tabJoin" onclick="switchTab('join')">Join Room</button>
+        <button class="tab-btn active" id="tabCreate" onclick="switchTab('create')">Host Session</button>
+        <button class="tab-btn" id="tabJoin" onclick="switchTab('join')">Join Session</button>
       </div>
 
       <div class="pin-container">
@@ -221,17 +398,36 @@
         <input type="password" maxlength="1" class="pin-input" />
       </div>
 
-      <button class="btn-action" id="actionBtn" onclick="handleAction()">Host Room</button>
+      <button class="btn-action" id="actionBtn" onclick="handleAction()">Initialize Host Room</button>
       <div class="status-msg" id="statusMsg"></div>
     </div>
 
+    <!-- ANONYMOUS CHAT DASHBOARD -->
     <div id="roomView" class="room-view">
-      <div class="room-header">
-        <span>🔒 Live P2P Connection</span>
-        <button onclick="leaveRoom()" style="background:none; border:none; color:var(--error); cursor:pointer; font-weight:700;">Leave</button>
+      <div class="top-bar">
+        <div class="status-pill">
+          <div class="pulse-dot"></div>
+          <span id="connState">Live Connected</span>
+        </div>
+
+        <div class="pin-badge" onclick="copyPin()" title="Click to copy PIN">
+          <span>PIN: <strong id="activePinDisplay">----</strong></span>
+          <span style="font-size:0.75rem; color:var(--primary);">📋</span>
+        </div>
+
+        <button class="btn-leave" onclick="leaveRoom()">End</button>
+      </div>
+
+      <div class="metrics-bar">
+        <span>Session Time: <strong id="timerDisplay">00:00</strong></span>
+        <span>Messages: <strong id="msgCounter">0</strong></span>
       </div>
 
       <div class="chat-box" id="chatBox"></div>
+
+      <div class="controls-bar">
+        <button class="btn-secondary" onclick="clearLocalChat()">🧹 Clear Messages</button>
+      </div>
 
       <div class="chat-input-group">
         <input type="text" id="msgInput" class="chat-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()" />
@@ -245,7 +441,12 @@
     let peer = null;
     let conn = null;
     let currentMode = 'create';
+    let messageCount = 0;
+    let timerInterval = null;
+    let secondsElapsed = 0;
+    let currentPin = '';
 
+    // Auto-advance PIN input fields
     const inputs = document.querySelectorAll('.pin-input');
     inputs.forEach((input, index) => {
       input.addEventListener('input', (e) => {
@@ -264,7 +465,7 @@
 
       document.getElementById('tabCreate').classList.toggle('active', mode === 'create');
       document.getElementById('tabJoin').classList.toggle('active', mode === 'join');
-      document.getElementById('actionBtn').innerText = mode === 'create' ? 'Host Room' : 'Join Room';
+      document.getElementById('actionBtn').innerText = mode === 'create' ? 'Initialize Host Room' : 'Join Existing Session';
     }
 
     function handleAction() {
@@ -278,16 +479,17 @@
         return;
       }
 
-      const peerId = 'studysync_room_' + pin;
+      currentPin = pin;
+      const peerId = 'studysync_pro_' + pin;
 
       if (currentMode === 'create') {
         status.className = 'status-msg success';
-        status.innerText = 'Initializing room... Waiting for peer.';
+        status.innerText = 'Creating session... Waiting for peer.';
 
         peer = new Peer(peerId);
 
         peer.on('open', () => {
-          status.innerText = 'Room active! Ask your peer to join with PIN: ' + pin;
+          status.innerText = 'Host active! Share PIN ' + pin + ' with your study peer.';
         });
 
         peer.on('connection', (connection) => {
@@ -298,15 +500,15 @@
         peer.on('error', (err) => {
           status.className = 'status-msg error';
           if (err.type === 'unavailable-id') {
-            status.innerText = 'This PIN is currently in use. Try a different PIN.';
+            status.innerText = 'PIN is already in use by another host. Choose another PIN.';
           } else {
-            status.innerText = 'Error connecting to peer network.';
+            status.innerText = 'Network error connecting to peer server.';
           }
         });
 
       } else {
         status.className = 'status-msg success';
-        status.innerText = 'Connecting to room...';
+        status.innerText = 'Connecting to peer...';
 
         peer = new Peer();
 
@@ -319,13 +521,13 @@
 
           conn.on('error', () => {
             status.className = 'status-msg error';
-            status.innerText = 'Failed to connect. Check PIN or verify host is active.';
+            status.innerText = 'Connection failed. Verify PIN and ensure host is active.';
           });
         });
 
         peer.on('error', () => {
           status.className = 'status-msg error';
-          status.innerText = 'Room not found. Make sure the host has created the room first.';
+          status.innerText = 'Session not found. Make sure host creates room first.';
         });
       }
     }
@@ -333,14 +535,17 @@
     function setupChat() {
       document.getElementById('entryView').style.display = 'none';
       document.getElementById('roomView').style.display = 'block';
+      document.getElementById('activePinDisplay').innerText = currentPin;
+
+      startSessionTimer();
 
       conn.on('data', (data) => {
-        appendMessage('Anonymous Peer', data, false);
+        appendMessage('Peer', data, false);
       });
 
       conn.on('close', () => {
-        alert('Peer has disconnected.');
-        location.reload();
+        alert('Your peer has disconnected.');
+        leaveRoom();
       });
     }
 
@@ -359,23 +564,50 @@
       const wrapper = document.createElement('div');
       wrapper.className = 'msg-wrapper ' + (isMine ? 'mine' : 'partner');
 
-      const label = document.createElement('div');
-      label.className = 'sender-label';
-      label.innerText = sender;
+      const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+      const header = document.createElement('div');
+      header.className = 'msg-header';
+      header.innerText = `${sender} • ${timeStr}`;
 
       const div = document.createElement('div');
       div.className = 'msg';
       div.innerText = text;
 
-      wrapper.appendChild(label);
+      wrapper.appendChild(header);
       wrapper.appendChild(div);
       chatBox.appendChild(wrapper);
       chatBox.scrollTop = chatBox.scrollHeight;
+
+      messageCount++;
+      document.getElementById('msgCounter').innerText = messageCount;
+    }
+
+    function startSessionTimer() {
+      timerInterval = setInterval(() => {
+        secondsElapsed++;
+        const mins = String(Math.floor(secondsElapsed / 60)).padStart(2, '0');
+        const secs = String(secondsElapsed % 60).padStart(2, '0');
+        document.getElementById('timerDisplay').innerText = `${mins}:${secs}`;
+      }, 1000);
+    }
+
+    function clearLocalChat() {
+      document.getElementById('chatBox').innerHTML = '';
+      messageCount = 0;
+      document.getElementById('msgCounter').innerText = '0';
+    }
+
+    function copyPin() {
+      navigator.clipboard.writeText(currentPin);
+      alert('Room PIN copied to clipboard!');
     }
 
     function leaveRoom() {
+      if (timerInterval) clearInterval(timerInterval);
       location.reload();
     }
   </script>
 </body>
-</html>
+  </html>
+  
