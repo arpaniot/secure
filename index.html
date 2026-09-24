@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>StudySync - Zero-API Peer Chat</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- PeerJS Library (No API Keys Required) -->
+  <script src="https://unpkg.com/peerjs@1.5.2/dist/peerjs.min.js"></script>
+  
+  <style>
+    :root {
+      --bg-gradient: linear-gradient(135deg, #0f172a 0%, #1e1b4b 50%, #311042 100%);
+      --card-bg: rgba(255, 255, 255, 0.05);
+      --card-border: rgba(255, 255, 255, 0.12);
+      --primary: #6366f1;
+      --accent: #a855f7;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --error: #f43f5e;
+      --success: #10b981;
+      --radius: 20px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Plus Jakarta Sans', sans-serif; }
+
+    body {
+      min-height: 100vh;
+      background: var(--bg-gradient);
+      color: var(--text-main);
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+
+    .app-card {
+      width: 100%;
+      max-width: 480px;
+      background: var(--card-bg);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border: 1px solid var(--card-border);
+      border-radius: var(--radius);
+      padding: 32px 24px;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+      text-align: center;
+    }
+
+    .logo-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(99, 102, 241, 0.15);
+      border: 1px solid rgba(99, 102, 241, 0.3);
+      color: #818cf8;
+      padding: 6px 14px;
+      border-radius: 30px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+
+    h1 { font-size: 1.8rem; font-weight: 800; margin-bottom: 8px; }
+    p.subtitle { color: var(--text-muted); font-size: 0.9rem; margin-bottom: 24px; }
+
+    .tab-group {
+      display: flex;
+      background: rgba(0, 0, 0, 0.25);
+      padding: 4px;
+      border-radius: 12px;
+      margin-bottom: 20px;
+    }
+
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: 600;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+
+    .tab-btn.active { background: var(--primary); color: #fff; }
+
+    .pin-container {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    .pin-input {
+      width: 100%;
+      height: 50px;
+      text-align: center;
+      font-size: 1.4rem;
+      font-weight: 700;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1.5px solid var(--card-border);
+      border-radius: 12px;
+      color: var(--text-main);
+      outline: none;
+    }
+
+    .pin-input:focus { border-color: var(--primary); }
+
+    .btn-action {
+      width: 100%;
+      padding: 14px;
+      border: none;
+      border-radius: 12px;
+      background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+      color: white;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+    }
+
+    .status-msg { font-size: 0.85rem; margin-top: 14px; min-height: 20px; }
+    .status-msg.error { color: var(--error); }
+    .status-msg.success { color: var(--success); }
+
+    .room-view { display: none; text-align: left; }
+    
+    .room-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      background: rgba(16, 185, 129, 0.1);
+      border: 1px solid rgba(16, 185, 129, 0.3);
+      padding: 12px 16px;
+      border-radius: 12px;
+      color: var(--success);
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 16px;
+    }
+
+    .chat-box {
+      height: 300px;
+      background: rgba(0, 0, 0, 0.25);
+      border: 1px solid var(--card-border);
+      border-radius: 12px;
+      padding: 12px;
+      overflow-y: auto;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .msg-wrapper {
+      display: flex;
+      flex-direction: column;
+      max-width: 80%;
+    }
+
+    .msg-wrapper.mine { align-self: flex-end; align-items: flex-end; }
+    .msg-wrapper.partner { align-self: flex-start; align-items: flex-start; }
+
+    .sender-label { font-size: 0.7rem; color: var(--text-muted); margin-bottom: 3px; font-weight: 600; }
+
+    .msg {
+      padding: 10px 14px;
+      border-radius: 14px;
+      font-size: 0.9rem;
+      word-break: break-word;
+      line-height: 1.4;
+    }
+
+    .msg-wrapper.mine .msg { background: var(--primary); color: white; border-bottom-right-radius: 2px; }
+    .msg-wrapper.partner .msg { background: rgba(255, 255, 255, 0.1); color: white; border-bottom-left-radius: 2px; }
+
+    .chat-input-group { display: flex; gap: 8px; }
+
+    .chat-input {
+      flex: 1;
+      padding: 12px 14px;
+      background: rgba(0, 0, 0, 0.2);
+      border: 1px solid var(--card-border);
+      border-radius: 10px;
+      color: white;
+      outline: none;
+      font-size: 0.95rem;
+    }
+
+    .btn-send {
+      padding: 0 20px;
+      background: var(--primary);
+      border: none;
+      border-radius: 10px;
+      color: white;
+      font-weight: 700;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="app-card">
+    
+    <div id="entryView">
+      <div class="logo-badge">⚡ Zero-Backend P2P Sync</div>
+      <h1>StudySync</h1>
+      <p class="subtitle">Enter a unique 4-digit PIN to establish a direct P2P connection.</p>
+
+      <div class="tab-group">
+        <button class="tab-btn active" id="tabCreate" onclick="switchTab('create')">Host Room</button>
+        <button class="tab-btn" id="tabJoin" onclick="switchTab('join')">Join Room</button>
+      </div>
+
+      <div class="pin-container">
+        <input type="password" maxlength="1" class="pin-input" autofocus />
+        <input type="password" maxlength="1" class="pin-input" />
+        <input type="password" maxlength="1" class="pin-input" />
+        <input type="password" maxlength="1" class="pin-input" />
+      </div>
+
+      <button class="btn-action" id="actionBtn" onclick="handleAction()">Host Room</button>
+      <div class="status-msg" id="statusMsg"></div>
+    </div>
+
+    <div id="roomView" class="room-view">
+      <div class="room-header">
+        <span>🔒 Live P2P Connection</span>
+        <button onclick="leaveRoom()" style="background:none; border:none; color:var(--error); cursor:pointer; font-weight:700;">Leave</button>
+      </div>
+
+      <div class="chat-box" id="chatBox"></div>
+
+      <div class="chat-input-group">
+        <input type="text" id="msgInput" class="chat-input" placeholder="Type a message..." onkeypress="if(event.key==='Enter') sendMessage()" />
+        <button class="btn-send" onclick="sendMessage()">Send</button>
+      </div>
+    </div>
+
+  </div>
+
+  <script>
+    let peer = null;
+    let conn = null;
+    let currentMode = 'create';
+
+    const inputs = document.querySelectorAll('.pin-input');
+    inputs.forEach((input, index) => {
+      input.addEventListener('input', (e) => {
+        if (e.target.value.length === 1 && index < inputs.length - 1) inputs[index + 1].focus();
+      });
+      input.addEventListener('keydown', (e) => {
+        if (e.key === 'Backspace' && !e.target.value && index > 0) inputs[index - 1].focus();
+      });
+    });
+
+    function switchTab(mode) {
+      currentMode = mode;
+      document.getElementById('statusMsg').innerText = '';
+      inputs.forEach(i => i.value = '');
+      inputs[0].focus();
+
+      document.getElementById('tabCreate').classList.toggle('active', mode === 'create');
+      document.getElementById('tabJoin').classList.toggle('active', mode === 'join');
+      document.getElementById('actionBtn').innerText = mode === 'create' ? 'Host Room' : 'Join Room';
+    }
+
+    function handleAction() {
+      let pin = '';
+      inputs.forEach(i => pin += i.value);
+      const status = document.getElementById('statusMsg');
+
+      if (pin.length < 4) {
+        status.className = 'status-msg error';
+        status.innerText = 'Please enter a 4-digit PIN.';
+        return;
+      }
+
+      const peerId = 'studysync_room_' + pin;
+
+      if (currentMode === 'create') {
+        status.className = 'status-msg success';
+        status.innerText = 'Initializing room... Waiting for peer.';
+
+        peer = new Peer(peerId);
+
+        peer.on('open', () => {
+          status.innerText = 'Room active! Ask your peer to join with PIN: ' + pin;
+        });
+
+        peer.on('connection', (connection) => {
+          conn = connection;
+          setupChat();
+        });
+
+        peer.on('error', (err) => {
+          status.className = 'status-msg error';
+          if (err.type === 'unavailable-id') {
+            status.innerText = 'This PIN is currently in use. Try a different PIN.';
+          } else {
+            status.innerText = 'Error connecting to peer network.';
+          }
+        });
+
+      } else {
+        status.className = 'status-msg success';
+        status.innerText = 'Connecting to room...';
+
+        peer = new Peer();
+
+        peer.on('open', () => {
+          conn = peer.connect(peerId);
+
+          conn.on('open', () => {
+            setupChat();
+          });
+
+          conn.on('error', () => {
+            status.className = 'status-msg error';
+            status.innerText = 'Failed to connect. Check PIN or verify host is active.';
+          });
+        });
+
+        peer.on('error', () => {
+          status.className = 'status-msg error';
+          status.innerText = 'Room not found. Make sure the host has created the room first.';
+        });
+      }
+    }
+
+    function setupChat() {
+      document.getElementById('entryView').style.display = 'none';
+      document.getElementById('roomView').style.display = 'block';
+
+      conn.on('data', (data) => {
+        appendMessage('Anonymous Peer', data, false);
+      });
+
+      conn.on('close', () => {
+        alert('Peer has disconnected.');
+        location.reload();
+      });
+    }
+
+    function sendMessage() {
+      const input = document.getElementById('msgInput');
+      const text = input.value.trim();
+      if (!text || !conn) return;
+
+      conn.send(text);
+      appendMessage('You', text, true);
+      input.value = '';
+    }
+
+    function appendMessage(sender, text, isMine) {
+      const chatBox = document.getElementById('chatBox');
+      const wrapper = document.createElement('div');
+      wrapper.className = 'msg-wrapper ' + (isMine ? 'mine' : 'partner');
+
+      const label = document.createElement('div');
+      label.className = 'sender-label';
+      label.innerText = sender;
+
+      const div = document.createElement('div');
+      div.className = 'msg';
+      div.innerText = text;
+
+      wrapper.appendChild(label);
+      wrapper.appendChild(div);
+      chatBox.appendChild(wrapper);
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function leaveRoom() {
+      location.reload();
+    }
+  </script>
+</body>
+</html>
