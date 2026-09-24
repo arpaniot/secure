@@ -350,6 +350,41 @@
       font-weight: bold;
     }
 
+    /* JUMPING CAT TYPING INDICATOR */
+    .typing-indicator-box {
+      display: none;
+      align-items: center;
+      gap: 8px;
+      padding: 6px 12px;
+      background: rgba(32, 44, 51, 0.85);
+      border-radius: 16px;
+      align-self: flex-start;
+      margin-bottom: 4px;
+      border: 1px solid var(--wa-border);
+      backdrop-filter: blur(4px);
+    }
+
+    .jumping-cat {
+      font-size: 1.2rem;
+      display: inline-block;
+      animation: catJump 0.45s infinite alternate ease-in-out;
+    }
+
+    @keyframes catJump {
+      0% {
+        transform: translateY(0) scale(1, 0.9);
+      }
+      100% {
+        transform: translateY(-8px) scale(0.9, 1.1);
+      }
+    }
+
+    .typing-text {
+      font-size: 0.78rem;
+      color: var(--wa-green);
+      font-weight: 600;
+    }
+
     /* INPUT BAR */
     .chat-footer {
       background: var(--wa-header);
@@ -477,7 +512,7 @@
           <div class="avatar">👤</div>
           <div class="user-info">
             <h2>Study Peer</h2>
-            <p>● online</p>
+            <p id="peerStatusText">● online</p>
           </div>
         </div>
 
@@ -496,10 +531,16 @@
         </div>
       </div>
 
-      <div class="chat-body" id="chatBox"></div>
+      <div class="chat-body" id="chatBox">
+        <!-- Floating Jumping Cat Typing Container -->
+        <div class="typing-indicator-box" id="typingContainer">
+          <span class="jumping-cat">🐱</span>
+          <span class="typing-text">Peer is typing...</span>
+        </div>
+      </div>
 
       <div class="chat-footer">
-        <input type="text" id="msgInput" class="chat-input" placeholder="Type a message" onkeypress="if(event.key==='Enter') sendMessage()" />
+        <input type="text" id="msgInput" class="chat-input" placeholder="Type a message" oninput="handleTypingEvent()" onkeypress="if(event.key==='Enter') sendMessage()" />
         <button class="btn-send-icon" onclick="sendMessage()">➤</button>
       </div>
 
@@ -524,6 +565,8 @@
     let currentMode = 'create';
     let currentPin = '';
     let deletedVault = [];
+    let typingTimer = null;
+    let isTypingActive = false;
 
     // Auto-advance PIN inputs
     const inputs = document.querySelectorAll('.pin-input');
@@ -635,9 +678,14 @@
 
       conn.on('data', (data) => {
         if (data.type === 'CHAT') {
+          hideTypingIndicator();
           appendMessage(data.id, data.text, false, data.time);
         } else if (data.type === 'DELETE') {
           handleRemoteDelete(data.id);
+        } else if (data.type === 'TYPING') {
+          showTypingIndicator();
+        } else if (data.type === 'STOP_TYPING') {
+          hideTypingIndicator();
         }
       });
 
@@ -647,10 +695,42 @@
       });
     }
 
+    function handleTypingEvent() {
+      if (!conn) return;
+
+      if (!isTypingActive) {
+        isTypingActive = true;
+        conn.send({ type: 'TYPING' });
+      }
+
+      clearTimeout(typingTimer);
+      typingTimer = setTimeout(() => {
+        isTypingActive = false;
+        if (conn) conn.send({ type: 'STOP_TYPING' });
+      }, 1500);
+    }
+
+    function showTypingIndicator() {
+      document.getElementById('typingContainer').style.display = 'flex';
+      document.getElementById('peerStatusText').innerText = '🐱 typing...';
+      const chatBox = document.getElementById('chatBox');
+      chatBox.scrollTop = chatBox.scrollHeight;
+    }
+
+    function hideTypingIndicator() {
+      document.getElementById('typingContainer').style.display = 'none';
+      document.getElementById('peerStatusText').innerText = '● online';
+    }
+
     function sendMessage() {
       const input = document.getElementById('msgInput');
       const text = input.value.trim();
       if (!text || !conn) return;
+
+      // Stop typing status instantly when message sent
+      clearTimeout(typingTimer);
+      isTypingActive = false;
+      conn.send({ type: 'STOP_TYPING' });
 
       const msgId = 'msg_' + Date.now() + '_' + Math.random().toString(36).substr(2, 4);
       const timeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
@@ -683,82 +763,10 @@
         </div>
       `;
 
-      chatBox.appendChild(bubble);
+      // Insert message before typing indicator container
+      const typingContainer = document.getElementById('typingContainer');
+      chatBox.insertBefore(bubble, typingContainer);
       chatBox.scrollTop = chatBox.scrollHeight;
     }
 
-    function deleteForEveryone(msgId) {
-      const bubble = document.getElementById(msgId);
-      if (!bubble) return;
-
-      // Broadcast delete command to peer
-      if (conn) {
-        conn.send({ type: 'DELETE', id: msgId });
-      }
-
-      // Save to secret vault locally
-      saveToVault(bubble.dataset.sender, bubble.dataset.originalText, bubble.dataset.time);
-
-      // Update local message UI
-      markAsDeleted(bubble);
-    }
-
-    function handleRemoteDelete(msgId) {
-      const bubble = document.getElementById(msgId);
-      if (bubble) {
-        // Save peer's deleted message into your secret vault
-        saveToVault(bubble.dataset.sender, bubble.dataset.originalText, bubble.dataset.time);
-        markAsDeleted(bubble);
-      }
-    }
-
-    function markAsDeleted(bubble) {
-      bubble.innerHTML = `
-        <div class="deleted-notice">
-          🚫 <span>This message was deleted</span>
-        </div>
-      `;
-    }
-
-    function saveToVault(sender, text, time) {
-      deletedVault.push({ sender, text, time, deletedAt: new Date().toLocaleTimeString() });
-    }
-
-    function openVault() {
-      const code = prompt('Enter 4-digit Vault Passcode:');
-      if (code === '6767') {
-        const vaultModal = document.getElementById('vaultModal');
-        const vaultList = document.getElementById('vaultList');
-
-        if (deletedVault.length === 0) {
-          vaultList.innerHTML = '<p style="color: var(--wa-muted); text-align: center; margin-top: 20px;">No deleted messages recorded in this session.</p>';
-        } else {
-          vaultList.innerHTML = deletedVault.map(item => `
-            <div class="vault-item">
-              <div class="vault-meta">Sender: <strong>${item.sender}</strong> • Sent at ${item.time} (Deleted at ${item.deletedAt})</div>
-              <div style="color: #e9edef; font-weight: 500;">${item.text}</div>
-            </div>
-          `).join('');
-        }
-
-        vaultModal.style.display = 'flex';
-      } else if (code !== null) {
-        alert('Incorrect Passcode!');
-      }
-    }
-
-    function closeVault() {
-      document.getElementById('vaultModal').style.display = 'none';
-    }
-
-    function copyPin() {
-      navigator.clipboard.writeText(currentPin);
-      alert('Room PIN copied to clipboard!');
-    }
-
-    function leaveRoom() {
-      location.reload();
-    }
-  </script>
-</body>
-</html>
+    funct
